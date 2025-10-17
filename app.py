@@ -8,14 +8,15 @@ import matplotlib.pyplot as plt
 # ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Diversification of Risk Calculator",
-    layout="centered"  # ensures app always opens in standard mode
+    layout="centered"  # Always open in centered view
 )
 
 st.title("📊 Diversification of Risk Calculator")
 
 st.markdown("""
 This interactive calculator demonstrates **Modern Portfolio Theory (MPT)**  
-using the *Watson & Head (2023)* two-security example from *Corporate Finance: Principles and Practice* (8th Edition).
+using the *Watson & Head (2023)* two-security example from  
+*Corporate Finance: Principles and Practice* (8th Edition).
 
 Enter or edit **5 years of annual returns (%)** for two securities **S** and **T**,  
 then view the resulting portfolio risk, return, and diversification benefits.
@@ -26,10 +27,10 @@ then view the resulting portfolio risk, return, and diversification benefits.
 # ──────────────────────────────────────────────────────────────
 st.subheader("Step 1 – Input Data")
 
-# Watson & Head test data – Corporate Finance (8th Edition)
+# Watson & Head (2023) test data – Corporate Finance (8th Edition)
 watson_head_data = pd.DataFrame({
-    "S": [6.6, 5.6, -9.0, 12.6, 14.0],
-    "T": [24.5, -5.9, 19.9, -7.8, 14.8]
+    "S return (%)": [6.6, 5.6, -9.0, 12.6, 14.0],
+    "T return (%)": [24.5, -5.9, 19.9, -7.8, 14.8]
 })
 
 data_choice = st.radio(
@@ -38,9 +39,11 @@ data_choice = st.radio(
 )
 
 if data_choice == "Use Watson & Head (2023) test data":
-    df = watson_head_data.copy()
+    st.markdown("**Watson & Head (2023) test dataset:**")
+    st.dataframe(watson_head_data, use_container_width=True)
+    df = watson_head_data.rename(columns={"S return (%)": "S", "T return (%)": "T"}).copy()
 else:
-    st.write("Edit the spreadsheet below:")
+    st.write("Enter or edit your own 5-year returns below:")
     df = st.data_editor(
         pd.DataFrame({"S": [None]*5, "T": [None]*5}),
         num_rows="fixed",
@@ -118,38 +121,3 @@ if st.button("Run Analysis", type="primary"):
         f"compared to S (**{sd_s*100:.2f}%**) and T (**{sd_t*100:.2f}%**). "
         "Diversification reduces total portfolio risk below that of either individual security."
     )
-
-    # ──────────────────────────────────────────────────────────────
-    # Step 5 – Download / Print Report
-    # ──────────────────────────────────────────────────────────────
-    st.subheader("Step 5 – Download / Print Report")
-
-    st.markdown("""
-    You can print or save this analysis as a PDF using your browser’s print dialog.
-    Click the button below to open the print preview window.
-    """)
-
-    st.markdown("""
-        <style>
-        .print-link {
-            background-color: #2E86C1;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 0.6em 1.2em;
-            font-size: 1em;
-            cursor: pointer;
-            box-shadow: 1px 2px 4px rgba(0,0,0,0.2);
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 8px;
-        }
-        .print-link:hover {
-            background-color: #1B4F72;
-        }
-        @media print {
-            .print-link {display: none;}
-        }
-        </style>
-        <a href="javascript:window.print()" class="print-link">🖨️ Print or Save as PDF</a>
-    """, unsafe_allow_html=True)
