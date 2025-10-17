@@ -18,10 +18,10 @@ Enter or edit **5 years of annual returns (%)** for two securities **S** and **T
 Then calculate portfolio risk and return following the layout of *Watson & Head (2023) Table 8.3*.
 """)
 
-# --- Default dataset (Watson & Head example logic) ---
+# --- Default dataset (Watson & Head style) ---
 default_data = pd.DataFrame({
-    "S": [10.8, 11.2, 9.6, 10.4, 12.0],
-    "T": [5.0, 5.4, 4.8, 5.2, 5.6]
+    "S": [5.96, 6.5, 7.2, 7.8, 8.0],
+    "T": [9.1, 8.7, 10.0, 9.2, 9.4]
 })
 
 # --- Step 1: Input Data ---
@@ -46,7 +46,6 @@ if st.button("Run Analysis", type="primary"):
     mean_s, mean_t = df["S"].mean(), df["T"].mean()
     sd_s, sd_t = df["S"].std(ddof=0), df["T"].std(ddof=0)
     corr = df["S"].corr(df["T"])
-    r_squared = corr ** 2
 
     st.success("✅ Calculation complete.")
 
@@ -57,16 +56,8 @@ if st.button("Run Analysis", type="primary"):
         "Standard Deviation": [sd_s, sd_t]
     }, index=["S", "T"])
 
-    st.dataframe(
-        summary.style.format("{:.2%}")
-        .set_table_styles([
-            {'selector': 'th', 'props': [('text-align', 'center'), ('font-weight', 'bold')]},
-            {'selector': 'td', 'props': [('text-align', 'center')]}
-        ]),
-        use_container_width=True
-    )
-
-    st.metric("Coefficient of Determination (r²)", f"{r_squared:.2f}")
+    st.dataframe(summary.style.format("{:.2%}"), use_container_width=True)
+    st.metric("Correlation (r)", f"{corr:.2f}")
 
     # --- Portfolio Weights (Watson & Head pattern) ---
     weights = [(1.0, 0.0), (0.8, 0.2), (0.6, 0.4), (0.4, 0.6), (0.2, 0.8), (0.0, 1.0)]
@@ -81,16 +72,9 @@ if st.button("Run Analysis", type="primary"):
 
     table_df = pd.DataFrame(results, columns=["Portfolio", "Mean Return (%)", "Standard Deviation (%)"])
 
-    # --- Portfolio Table (Watson & Head layout) ---
+    # --- Portfolio Table (Table 8.3 Format) ---
     st.subheader("Portfolio Risk and Return Table (Table 8.3 Format)")
-    st.dataframe(
-        table_df.style.format("{:.2f}")
-        .set_table_styles([
-            {'selector': 'th', 'props': [('text-align', 'center'), ('font-weight', 'bold')]},
-            {'selector': 'td', 'props': [('text-align', 'center')]}
-        ]),
-        use_container_width=True
-    )
+    st.dataframe(table_df.style.format("{:.2f}"), use_container_width=True)
 
     # --- Efficient Frontier Plot ---
     st.subheader("Efficient Frontier Graph")
@@ -112,7 +96,7 @@ if st.button("Run Analysis", type="primary"):
         story = [
             Paragraph("Diversification of Risk – Modern Portfolio Theory (MPT)", styles["Title"]),
             Spacer(1, 12),
-            Paragraph(f"Coefficient of Determination (r²): {r_squared:.2f}", styles["Normal"]),
+            Paragraph(f"Correlation (r): {corr:.2f}", styles["Normal"]),
             Spacer(1, 12),
             Paragraph("Portfolio Risk and Return (Table 8.3 Format):", styles["Heading3"])
         ]
