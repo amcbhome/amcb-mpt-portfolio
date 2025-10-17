@@ -6,7 +6,11 @@ import matplotlib.pyplot as plt
 # ──────────────────────────────────────────────────────────────
 # Page setup
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Diversification of Risk Calculator", layout="centered")
+st.set_page_config(
+    page_title="Diversification of Risk Calculator",
+    layout="centered"  # ensures app always opens in standard mode
+)
+
 st.title("📊 Diversification of Risk Calculator")
 
 st.markdown("""
@@ -127,7 +131,7 @@ if st.button("Run Analysis", type="primary"):
 
     st.markdown("""
         <style>
-        .print-button {
+        .print-link {
             background-color: #2E86C1;
             color: white;
             border: none;
@@ -136,13 +140,16 @@ if st.button("Run Analysis", type="primary"):
             font-size: 1em;
             cursor: pointer;
             box-shadow: 1px 2px 4px rgba(0,0,0,0.2);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 8px;
         }
-        .print-button:hover {
+        .print-link:hover {
             background-color: #1B4F72;
         }
         @media print {
-            .print-button {display: none;}
+            .print-link {display: none;}
         }
         </style>
-        <button class="print-button" onclick="window.print()">🖨️ Print or Save as PDF</button>
+        <a href="javascript:window.print()" class="print-link">🖨️ Print or Save as PDF</a>
     """, unsafe_allow_html=True)
