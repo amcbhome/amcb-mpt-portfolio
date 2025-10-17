@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # ──────────────────────────────────────────────────────────────
 # Page setup
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Diversification of Risk Calculator", layout="centred")
+st.set_page_config(page_title="Diversification of Risk Calculator", layout="centered")
 st.title("📊 Diversification of Risk Calculator")
 
 st.markdown("""
