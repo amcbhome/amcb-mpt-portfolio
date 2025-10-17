@@ -7,111 +7,125 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.pdfbase.cidfonts import UnicodeCIDFont
-from reportlab.pdfbase import pdfmetrics
 
-# Register Unicode font (for symbols)
-pdfmetrics.registerFont(UnicodeCIDFont("HeiseiKakuGo-W5"))
+# --- Streamlit page config ---
+st.set_page_config(page_title="MPT Diversification – Two Securities", layout="wide")
 
-st.set_page_config(page_title="MPT Diversified Portfolio – Predictive Analytics", layout="wide")
+st.title("📈 Diversification of Risk – Modern Portfolio Theory (MPT)")
 
-st.title("📈 Modern Portfolio Theory (MPT) – Two Security Diversification")
 st.markdown("""
-This tool calculates the **risk and return** of a two-asset portfolio under **Modern Portfolio Theory (MPT)** principles.  
-You can enter 5 years of returns for securities **S** and **T**, or use the default data.
+Enter or edit **5 years of annual returns (%)** for two securities **S** and **T**.  
+Then calculate portfolio risk and return following the layout of *Watson & Head (2023) Table 8.3*.
 """)
 
-# --- Default 5-year return data ---
+# --- Default dataset (Watson & Head example logic) ---
 default_data = pd.DataFrame({
-    "S": [0.12, 0.08, 0.10, 0.15, 0.09],
-    "T": [0.06, 0.04, 0.07, 0.05, 0.03]
+    "S": [10.8, 11.2, 9.6, 10.4, 12.0],
+    "T": [5.0, 5.4, 4.8, 5.2, 5.6]
 })
 
-with st.form("input_form"):
-    st.write("### Enter annual returns for 5 years (%)")
-    col1, col2 = st.columns(2)
-    s_returns = col1.text_input("Security S returns (comma separated)", "12, 8, 10, 15, 9")
-    t_returns = col2.text_input("Security T returns (comma separated)", "6, 4, 7, 5, 3")
-    use_default = st.checkbox("Use default data instead", value=False)
-    submitted = st.form_submit_button("Submit", use_container_width=True, type="primary")
+# --- Step 1: Input Data ---
+st.subheader("Step 1 – Input Data")
+use_default = st.checkbox("Use default sample data (Watson & Head style)", value=True)
 
-if submitted:
-    if use_default:
-        df = default_data.copy()
-    else:
-        try:
-            s_vals = [float(x.strip()) / 100 for x in s_returns.split(",")]
-            t_vals = [float(x.strip()) / 100 for x in t_returns.split(",")]
-            df = pd.DataFrame({"S": s_vals, "T": t_vals})
-        except Exception:
-            st.error("Please enter valid numeric returns separated by commas.")
-            st.stop()
+if use_default:
+    df = default_data.copy()
+else:
+    st.write("Edit the spreadsheet below:")
+    df = st.data_editor(
+        pd.DataFrame({"S": [None]*5, "T": [None]*5}),
+        num_rows="fixed",
+        use_container_width=True
+    )
 
-    st.success("✅ Data accepted. Performing analysis...")
-    st.write("### Input Data (Annual Returns)")
-    st.dataframe(df.style.format("{:.2%}"))
+# --- Step 2: Run Analysis ---
+if st.button("Run Analysis", type="primary"):
+    df = df.dropna()
+    df = df.astype(float) / 100  # convert % to decimal
 
-    # --- Core statistics ---
     mean_s, mean_t = df["S"].mean(), df["T"].mean()
     sd_s, sd_t = df["S"].std(ddof=0), df["T"].std(ddof=0)
     corr = df["S"].corr(df["T"])
+    r_squared = corr ** 2
 
-    st.write("### Summary Statistics")
+    st.success("✅ Calculation complete.")
+
+    # --- Summary Statistics Table ---
+    st.subheader("Summary Statistics")
     summary = pd.DataFrame({
         "Mean Return": [mean_s, mean_t],
         "Standard Deviation": [sd_s, sd_t]
     }, index=["S", "T"])
-    st.dataframe(summary.style.format("{:.2%}"))
-    st.metric("Correlation (r) between S and T", f"{corr:.2f}")
 
-    # --- Portfolio weights ---
-    weights = np.arange(0, 1.01, 0.2)
+    st.dataframe(
+        summary.style.format("{:.2%}")
+        .set_table_styles([
+            {'selector': 'th', 'props': [('text-align', 'center'), ('font-weight', 'bold')]},
+            {'selector': 'td', 'props': [('text-align', 'center')]}
+        ]),
+        use_container_width=True
+    )
+
+    st.metric("Coefficient of Determination (r²)", f"{r_squared:.2f}")
+
+    # --- Portfolio Weights (Watson & Head pattern) ---
+    weights = [(1.0, 0.0), (0.8, 0.2), (0.6, 0.4), (0.4, 0.6), (0.2, 0.8), (0.0, 1.0)]
+    labels = ["All S (100/0)", "A (80/20)", "B (60/40)", "C (40/60)", "D (20/80)", "All T (0/100)"]
+
     results = []
+    for (w_s, w_t), label in zip(weights, labels):
+        port_return = w_s * mean_s + w_t * mean_t
+        port_var = w_s**2 * sd_s**2 + w_t**2 * sd_t**2 + 2*w_s*w_t*sd_s*sd_t*corr
+        port_sd = np.sqrt(port_var)
+        results.append([label, port_return*100, port_sd*100])
 
-    for w in weights:
-        w_s, w_t = w, 1 - w
-        portfolio_return = w_s * mean_s + w_t * mean_t
-        portfolio_var = (
-            w_s**2 * sd_s**2 +
-            w_t**2 * sd_t**2 +
-            2 * w_s * w_t * sd_s * sd_t * corr
-        )
-        portfolio_sd = np.sqrt(portfolio_var)
-        results.append([f"{int(w_s*100)}/{int(w_t*100)}", portfolio_return, portfolio_sd])
+    table_df = pd.DataFrame(results, columns=["Portfolio", "Mean Return (%)", "Standard Deviation (%)"])
 
-    results_df = pd.DataFrame(results, columns=["Weights (S/T)", "Expected Return", "Portfolio Risk (SD)"])
-    st.write("### Portfolio Risk and Return Table")
-    st.dataframe(results_df.style.format({"Expected Return": "{:.2%}", "Portfolio Risk (SD)": "{:.2%}"}))
+    # --- Portfolio Table (Watson & Head layout) ---
+    st.subheader("Portfolio Risk and Return Table (Table 8.3 Format)")
+    st.dataframe(
+        table_df.style.format("{:.2f}")
+        .set_table_styles([
+            {'selector': 'th', 'props': [('text-align', 'center'), ('font-weight', 'bold')]},
+            {'selector': 'td', 'props': [('text-align', 'center')]}
+        ]),
+        use_container_width=True
+    )
 
-    # --- Efficient Frontier plot ---
-    fig, ax = plt.subplots(figsize=(8,5))
-    ax.plot(results_df["Portfolio Risk (SD)"], results_df["Expected Return"], marker='o')
-    ax.set_xlabel("Portfolio Risk (Standard Deviation)")
-    ax.set_ylabel("Expected Return")
-    ax.set_title("Efficient Frontier (Two-Asset Portfolio)")
+    # --- Efficient Frontier Plot ---
+    st.subheader("Efficient Frontier Graph")
+    fig, ax = plt.subplots(figsize=(7,5))
+    ax.plot(table_df["Standard Deviation (%)"], table_df["Mean Return (%)"], marker='o')
+    for i, row in table_df.iterrows():
+        ax.annotate(row["Portfolio"], (row["Standard Deviation (%)"], row["Mean Return (%)"]), fontsize=8)
+    ax.set_xlabel("Risk (Standard Deviation %)")
+    ax.set_ylabel("Expected Return (%)")
+    ax.grid(True)
     st.pyplot(fig)
 
-    # --- Generate PDF Report ---
-    st.write("### Generate PDF Report")
-    if st.button("Create LaTeX Report (PDF)"):
+    # --- PDF Report ---
+    st.subheader("Download Report")
+    if st.button("Generate 1-Page PDF Report"):
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         styles = getSampleStyleSheet()
-        story = []
+        story = [
+            Paragraph("Diversification of Risk – Modern Portfolio Theory (MPT)", styles["Title"]),
+            Spacer(1, 12),
+            Paragraph(f"Coefficient of Determination (r²): {r_squared:.2f}", styles["Normal"]),
+            Spacer(1, 12),
+            Paragraph("Portfolio Risk and Return (Table 8.3 Format):", styles["Heading3"])
+        ]
 
-        story.append(Paragraph("Modern Portfolio Theory (MPT) – Diversified Risk Report", styles["Title"]))
+        data = [["Portfolio", "Mean Return (%)", "Standard Deviation (%)"]] + \
+            [[p, f"{r:.2f}", f"{s:.2f}"] for p, r, s in results]
+
+        story.append(Table(data))
         story.append(Spacer(1, 0.2*inch))
-        story.append(Paragraph(f"Correlation (r) between S and T: {corr:.2f}", styles["Normal"]))
-        story.append(Spacer(1, 0.2*inch))
-        story.append(Paragraph("Portfolio Risk and Return Table:", styles["Heading3"]))
-
-        table_data = [["Weights (S/T)", "Expected Return", "Portfolio Risk (SD)"]] + \
-            [[w, f"{r*100:.2f}%", f"{sd*100:.2f}%"] for w, r, sd in results]
-
-        table = Table(table_data)
-        story.append(table)
-        story.append(Spacer(1, 0.2*inch))
-        story.append(Paragraph("Generated by AI and verified by Alastair McBride for educational purposes.", styles["Italic"]))
-
+        story.append(Paragraph(
+            "Generated by AI and verified by Alastair McBride for educational use.",
+            styles["Italic"]
+        ))
         doc.build(story)
-        st.download_button("Download PDF Report", buffer.getvalue(), "MPT_Report.pdf", "application/pdf")
+
+        st.download_button("Download PDF", buffer.getvalue(), "MPT_Report.pdf", "application/pdf")
