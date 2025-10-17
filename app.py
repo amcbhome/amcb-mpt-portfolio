@@ -6,12 +6,15 @@ import matplotlib.pyplot as plt
 # ──────────────────────────────────────────────────────────────
 # Page setup
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="MPT Diversification – Two Securities", layout="centred")
-st.title("📈 Diversification of Risk – Modern Portfolio Theory (MPT)")
+st.set_page_config(page_title="Diversification of Risk Calculator", layout="centred")
+st.title("📊 Diversification of Risk Calculator")
 
 st.markdown("""
-Enter or edit **5 years of annual returns (%)** for two securities **S** and **T**.  
-You can use the *Watson & Head (2023)* test data or input your own to replicate **Table 8.3**.
+This interactive calculator demonstrates **Modern Portfolio Theory (MPT)**  
+using the *Watson & Head (2023)* two-security example from *Corporate Finance: Principles and Practice* (8th Edition).
+
+Enter or edit **5 years of annual returns (%)** for two securities **S** and **T**,  
+then view the resulting portfolio risk, return, and diversification benefits.
 """)
 
 # ──────────────────────────────────────────────────────────────
@@ -78,11 +81,11 @@ if st.button("Run Analysis", type="primary"):
     table_df = pd.DataFrame(results, columns=["Portfolio", "Mean Return (%)", "Standard Deviation (%)"])
 
     # Portfolio Risk & Return Table
-    st.subheader("Portfolio Risk and Return Table (Table 8.3 Format)")
+    st.subheader("Step 2 – Portfolio Risk and Return Table (Table 8.3 Format)")
     st.dataframe(table_df, use_container_width=True)
 
     # Efficient Frontier
-    st.subheader("Efficient Frontier Graph")
+    st.subheader("Step 3 – Efficient Frontier Graph")
     x = [float(v.strip('%')) for v in table_df["Standard Deviation (%)"]]
     y = [float(v.strip('%')) for v in table_df["Mean Return (%)"]]
     fig, ax = plt.subplots(figsize=(7, 5))
@@ -95,18 +98,51 @@ if st.button("Run Analysis", type="primary"):
     st.pyplot(fig)
 
     # ──────────────────────────────────────────────────────────────
-    # Step 3 – Interpret Diversification Benefit
+    # Step 4 – Diversification Benefit
     # ──────────────────────────────────────────────────────────────
     min_portfolio_risk = min(sd_values) * 100
     s_risk_reduction = sd_s * 100 - min_portfolio_risk
     t_risk_reduction = sd_t * 100 - min_portfolio_risk
 
-    st.subheader("Diversification Benefit Analysis")
-    st.write(f"Security **S** risk reduced by: **{s_risk_reduction:.2f}%**")
-    st.write(f"Security **T** risk reduced by: **{t_risk_reduction:.2f}%**")
+    st.subheader("Step 4 – Diversification Benefit Analysis")
+    col1, col2 = st.columns(2)
+    col1.metric("Security S risk reduced by", f"{s_risk_reduction:.2f}%")
+    col2.metric("Security T risk reduced by", f"{t_risk_reduction:.2f}%")
 
     st.info(
-        f"📉 Minimum portfolio risk: **{min_portfolio_risk:.2f}%**, compared to "
-        f"S risk (**{sd_s*100:.2f}%**) and T risk (**{sd_t*100:.2f}%**). "
-        "This confirms that diversification has successfully reduced overall risk."
+        f"📉 Minimum portfolio risk: **{min_portfolio_risk:.2f}%**, "
+        f"compared to S (**{sd_s*100:.2f}%**) and T (**{sd_t*100:.2f}%**). "
+        "Diversification reduces total portfolio risk below that of either individual security."
     )
+
+    # ──────────────────────────────────────────────────────────────
+    # Step 5 – Download / Print Report
+    # ──────────────────────────────────────────────────────────────
+    st.subheader("Step 5 – Download / Print Report")
+
+    st.markdown("""
+    You can print or save this analysis as a PDF using your browser’s print dialog.
+    Click the button below to open the print preview window.
+    """)
+
+    st.markdown("""
+        <style>
+        .print-button {
+            background-color: #2E86C1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6em 1.2em;
+            font-size: 1em;
+            cursor: pointer;
+            box-shadow: 1px 2px 4px rgba(0,0,0,0.2);
+        }
+        .print-button:hover {
+            background-color: #1B4F72;
+        }
+        @media print {
+            .print-button {display: none;}
+        }
+        </style>
+        <button class="print-button" onclick="window.print()">🖨️ Print or Save as PDF</button>
+    """, unsafe_allow_html=True)
