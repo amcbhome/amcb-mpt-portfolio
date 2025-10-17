@@ -2,11 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from io import BytesIO
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
 
 # ──────────────────────────────────────────────────────────────
 # Page setup
@@ -16,7 +11,7 @@ st.title("📈 Diversification of Risk – Modern Portfolio Theory (MPT)")
 
 st.markdown("""
 Enter or edit **5 years of annual returns (%)** for two securities **S** and **T**.  
-You can use the *Watson & Head (2023)* sample data or input your own to replicate **Table 8.3**.
+You can use the *Watson & Head (2023)* test data or input your own to replicate **Table 8.3**.
 """)
 
 # ──────────────────────────────────────────────────────────────
@@ -24,27 +19,19 @@ You can use the *Watson & Head (2023)* sample data or input your own to replicat
 # ──────────────────────────────────────────────────────────────
 st.subheader("Step 1 – Input Data")
 
-# --- Watson & Head test data (from Corporate Finance 8e Table 8.2) ---
+# Watson & Head test data – Corporate Finance (8th Edition)
 watson_head_data = pd.DataFrame({
     "S": [6.6, 5.6, -9.0, 12.6, 14.0],
     "T": [24.5, -5.9, 19.9, -7.8, 14.8]
 })
 
-# --- Simpler default dataset (user-friendly demo) ---
-simple_default = pd.DataFrame({
-    "S": [5.96, 6.50, 7.20, 7.80, 8.00],
-    "T": [9.10, 8.70, 10.00, 9.20, 9.40]
-})
-
 data_choice = st.radio(
     "Choose input mode:",
-    ["Use Watson & Head (2023) test data", "Use simplified example data", "Enter my own data"]
+    ["Use Watson & Head (2023) test data", "Enter my own data"]
 )
 
 if data_choice == "Use Watson & Head (2023) test data":
     df = watson_head_data.copy()
-elif data_choice == "Use simplified example data":
-    df = simple_default.copy()
 else:
     st.write("Edit the spreadsheet below:")
     df = st.data_editor(
@@ -66,7 +53,7 @@ if st.button("Run Analysis", type="primary"):
 
     st.success("✅ Calculation complete.")
 
-    # --- Summary Statistics ---
+    # Summary Statistics
     st.subheader("Summary Statistics")
     summary = pd.DataFrame({
         "Mean Return": [f"{mean_s*100:.2f}%", f"{mean_t*100:.2f}%"],
@@ -75,24 +62,26 @@ if st.button("Run Analysis", type="primary"):
     st.dataframe(summary, use_container_width=True)
     st.metric("Correlation (r)", f"{corr:.2f}")
 
-    # --- Portfolio Weights (Watson & Head pattern) ---
+    # Portfolio weights – Watson & Head pattern
     weights = [(1.0, 0.0), (0.8, 0.2), (0.6, 0.4), (0.4, 0.6), (0.2, 0.8), (0.0, 1.0)]
     labels = ["All S (100/0)", "A (80/20)", "B (60/40)", "C (40/60)", "D (20/80)", "All T (0/100)"]
 
     results = []
+    sd_values = []
     for (w_s, w_t), label in zip(weights, labels):
         port_return = w_s * mean_s + w_t * mean_t
         port_var = w_s**2 * sd_s**2 + w_t**2 * sd_t**2 + 2*w_s*w_t*sd_s*sd_t*corr
         port_sd = np.sqrt(port_var)
+        sd_values.append(port_sd)
         results.append([label, f"{port_return*100:.2f}%", f"{port_sd*100:.2f}%"])
 
     table_df = pd.DataFrame(results, columns=["Portfolio", "Mean Return (%)", "Standard Deviation (%)"])
 
-    # --- Portfolio Table ---
+    # Portfolio Risk & Return Table
     st.subheader("Portfolio Risk and Return Table (Table 8.3 Format)")
     st.dataframe(table_df, use_container_width=True)
 
-    # --- Efficient Frontier Plot ---
+    # Efficient Frontier
     st.subheader("Efficient Frontier Graph")
     x = [float(v.strip('%')) for v in table_df["Standard Deviation (%)"]]
     y = [float(v.strip('%')) for v in table_df["Mean Return (%)"]]
@@ -105,25 +94,19 @@ if st.button("Run Analysis", type="primary"):
     ax.grid(True)
     st.pyplot(fig)
 
-    # --- PDF Report ---
-    st.subheader("Download Report")
-    if st.button("Generate 1-Page PDF Report"):
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
-        styles = getSampleStyleSheet()
-        story = [
-            Paragraph("Diversification of Risk – Modern Portfolio Theory (MPT)", styles["Title"]),
-            Spacer(1, 12),
-            Paragraph(f"Correlation (r): {corr:.2f}", styles["Normal"]),
-            Spacer(1, 12),
-            Paragraph("Portfolio Risk and Return (Table 8.3 Format):", styles["Heading3"])
-        ]
-        data = [["Portfolio","Mean Return (%)","Standard Deviation (%)"]] + [[p, r, s] for p, r, s in results]
-        story.append(Table(data))
-        story.append(Spacer(1, 0.2*inch))
-        story.append(Paragraph(
-            "Generated by AI and verified by Alastair McBride for educational use (Watson & Head 2023).",
-            styles["Italic"]
-        ))
-        doc.build(story)
-        st.download_button("Download PDF", buffer.getvalue(), "MPT_Report.pdf", "application/pdf")
+    # ──────────────────────────────────────────────────────────────
+    # Step 3 – Interpret Diversification Benefit
+    # ──────────────────────────────────────────────────────────────
+    min_portfolio_risk = min(sd_values) * 100
+    s_risk_reduction = sd_s * 100 - min_portfolio_risk
+    t_risk_reduction = sd_t * 100 - min_portfolio_risk
+
+    st.subheader("Diversification Benefit Analysis")
+    st.write(f"Security **S** risk reduced by: **{s_risk_reduction:.2f}%**")
+    st.write(f"Security **T** risk reduced by: **{t_risk_reduction:.2f}%**")
+
+    st.info(
+        f"📉 Minimum portfolio risk: **{min_portfolio_risk:.2f}%**, compared to "
+        f"S risk (**{sd_s*100:.2f}%**) and T risk (**{sd_t*100:.2f}%**). "
+        "This confirms that diversification has successfully reduced overall risk."
+    )
