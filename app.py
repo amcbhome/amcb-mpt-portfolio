@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # ──────────────────────────────────────────────────────────────
 # Page setup
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="MPT Diversification – Two Securities", layout="wide")
+st.set_page_config(page_title="MPT Diversification – Two Securities", layout="centred")
 st.title("📈 Diversification of Risk – Modern Portfolio Theory (MPT)")
 
 st.markdown("""
