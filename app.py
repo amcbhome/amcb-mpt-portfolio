@@ -38,7 +38,7 @@ data_choice = st.radio(
     ["Default test data", "Enter my own data"]
 )
 
-if data_choice == "Use Watson & Head (2023) test data":
+if data_choice == "Default test data":
     st.markdown("**Watson & Head (2023) test dataset:**")
     st.dataframe(watson_head_data, use_container_width=True)
     df = watson_head_data.rename(columns={"S return (%)": "S", "T return (%)": "T"}).copy()
@@ -116,5 +116,4 @@ if st.button("Run Analysis", type="primary"):
     st.info(
         f"📉 Minimum portfolio risk: **{min_portfolio_risk:.2f}%**, "
         f"compared to S (**{sd_s*100:.2f}%**) and T (**{sd_t*100:.2f}%**). "
-        "Diversification reduces total portfolio risk below that of either individual security."
     )
