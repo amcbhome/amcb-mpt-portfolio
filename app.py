@@ -1,4 +1,4 @@
-import streamlit as st
+ultimport streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,7 +37,7 @@ data_choice = st.radio(
 )
 
 if data_choice == "Default test data":
-    st.markdown("**Watson & Head (2023) test dataset:**")
+    st.markdown("**Default dataset:**")
     st.dataframe(watson_head_data, use_container_width=True)
     df = watson_head_data.rename(columns={"S return (%)": "S", "T return (%)": "T"}).copy()
 else:
