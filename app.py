@@ -15,8 +15,9 @@ st.title("📊 Diversification of Risk Calculator")
 
 st.markdown("""
 This interactive calculator demonstrates **Modern Portfolio Theory (MPT)**  
-using the *Watson & Head (2023)* two-security example from  
+using the textbook example from *Watson & Head (2023)*   
 *Corporate Finance: Principles and Practice* (8th Edition).
+Print to PDF available from the top meenu.
 
 Enter or edit **5 years of annual returns (%)** for two securities **S** and **T**,  
 then view the resulting portfolio risk, return, and diversification benefits.
