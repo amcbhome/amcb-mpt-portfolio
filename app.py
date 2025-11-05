@@ -15,7 +15,7 @@ st.title("📊 Diversification of Risk Calculator")
 
 st.markdown("""
 This interactive calculator demonstrates **Modern Portfolio Theory (MPT)**  
-using the textbook example from *Watson & Head (2023)*.
+using a default dataset from *Watson & Head (2023)*.
 
 Enter or edit **5 years of annual returns (%)** for **S** and **T**.
 """)
