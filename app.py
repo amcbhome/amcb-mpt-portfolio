@@ -92,7 +92,7 @@ if st.button("Run Analysis", type="primary"):
     st.dataframe(table_df, use_container_width=True)
 
     # Efficient Frontier
-    st.subheader("Step 3 – Efficient Frontier Graph")
+    st.subheader("Step 3 – Portfolio options")
     x = [float(v.strip('%')) for v in table_df["Standard Deviation (%)"]]
     y = [float(v.strip('%')) for v in table_df["Mean Return (%)"]]
     fig, ax = plt.subplots(figsize=(7, 5))
@@ -111,7 +111,7 @@ if st.button("Run Analysis", type="primary"):
     s_risk_reduction = sd_s * 100 - min_portfolio_risk
     t_risk_reduction = sd_t * 100 - min_portfolio_risk
 
-    st.subheader("Step 4 – Diversification Benefit Analysis")
+    st.subheader("Step 4 – Analysis")
    
     st.info(
         f"📉 Minimum portfolio risk: **{min_portfolio_risk:.2f}%**, "
