@@ -88,7 +88,7 @@ if st.button("Run Analysis", type="primary"):
     table_df = pd.DataFrame(results, columns=["Portfolio", "Mean Return (%)", "Standard Deviation (%)"])
 
     # Portfolio Risk & Return Table
-    st.subheader("Step 2 – Portfolio Risk and Return Table (Table 8.3 Format)")
+    st.subheader("Step 2 – Portfolio Risk and Return")
     st.dataframe(table_df, use_container_width=True)
 
     # Efficient Frontier
@@ -112,10 +112,7 @@ if st.button("Run Analysis", type="primary"):
     t_risk_reduction = sd_t * 100 - min_portfolio_risk
 
     st.subheader("Step 4 – Diversification Benefit Analysis")
-    col1, col2 = st.columns(2)
-    col1.metric("Security S risk reduced by", f"{s_risk_reduction:.2f}%")
-    col2.metric("Security T risk reduced by", f"{t_risk_reduction:.2f}%")
-
+   
     st.info(
         f"📉 Minimum portfolio risk: **{min_portfolio_risk:.2f}%**, "
         f"compared to S (**{sd_s*100:.2f}%**) and T (**{sd_t*100:.2f}%**). "
