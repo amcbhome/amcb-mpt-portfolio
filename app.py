@@ -35,7 +35,7 @@ watson_head_data = pd.DataFrame({
 
 data_choice = st.radio(
     "Choose input mode:",
-    ["Use Watson & Head (2023) test data", "Enter my own data"]
+    ["Default test data", "Enter my own data"]
 )
 
 if data_choice == "Use Watson & Head (2023) test data":
